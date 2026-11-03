@@ -14,6 +14,8 @@
 6. [完整工程目录索引](#6-完整工程目录索引)
 7. [关键操作与继承运行命令](#7-关键操作与继承运行命令)
 8. [打包构建与发布体系](#8-打包构建与发布体系)
+9. [GitHub 仓库状态与发布运维指引 (含 Token 周期标注)](#9-github-仓库状态与发布运维指引-含-token-周期标注)
+10. [致未来接管 AI 的关键技术红线与继承执行法](#10-致未来接管-ai-的关键技术红线与继承执行法)
 
 ---
 
@@ -255,4 +257,52 @@ python scripts/build_win_exe.py
 - **安全校验清单**：`dist/SHA256SUMS.txt`（包含安装包与便携包的 SHA-256 哈希值）。
 
 ---
-**致接手者**：本软件架构清晰，所有核心数据状态与持久化配置均由 SQLite 自动管理，代码符合严格的 PEP 8 与类型标注，具备极高的扩展性与可维护性。
+
+## 9. GitHub 仓库状态与发布运维指引 (含 Token 周期标注)
+
+### 9.1 官方线上仓库与发布地址
+- **GitHub 仓库主页**：[https://github.com/huzhenchen66-cloud/VideoDownloader](https://github.com/huzhenchen66-cloud/VideoDownloader)
+- **Release 发布专区**：[https://github.com/huzhenchen66-cloud/VideoDownloader/releases/tag/v3.0.0](https://github.com/huzhenchen66-cloud/VideoDownloader/releases/tag/v3.0.0)
+- **已配置 Topics 标签**：`video-downloader`, `bilibili-downloader`, `douyin-downloader`, `xiaohongshu-downloader`, `youtube-downloader`, `bilibili`, `douyin`, `xiaohongshu`, `kuaishou`, `youtube`, `ai-storyboard`, `fluent-design`, `pyqt6` 等。
+
+### 9.2 自动化发布脚本与 Token 生命周期标注
+- **一键发布脚本**：`scripts/publish_to_github.py`
+- **执行命令**：
+  ```powershell
+  python scripts/publish_to_github.py --token "<GITHUB_PAT_TOKEN>"
+  ```
+- ⚠️ **GitHub PAT 访问令牌周期详细记录**：
+  - **初次发布 Token（脱敏）**：`ghp_bChGi9Nvfc**********************nnrR`
+  - **生效日期**：2026-11-03
+  - **有效期**：7 天（**将于 2026-11-10 准时过期**）
+  - **【未来维护者/AI 核心注意】**：
+    若您在 **2026-11-10 之后**接手本项目并需要发布新版本或向 GitHub 推送更新，此旧 Token 将会失效。请引导用户前往 GitHub 网页 `Settings -> Developer settings -> Personal access tokens (classic)` 重新生成一个勾选了 `repo` 权限的 Token，再带入 `--token` 参数即可一键发布，脚本会自动清理本地缓存凭据。
+
+---
+
+## 10. 致未来接管 AI 的关键技术红线与继承执行法
+
+如果你是后续在新会话中接管本项目的 AI（无论是 Antigravity、Claude、GPT 还是 DeepSeek），请严格遵守以下 5 条铁律：
+
+1. **绝对隐私红线**：
+   - 严禁在 Git 提交历史中写入用户的真实个人邮箱或拼音姓名；
+   - Git 提交作者邮箱必须统一使用 GitHub 官方提供的匿名混淆邮箱：`252005851+huzhenchen66-cloud@users.noreply.github.com`；
+   - 严禁将用户测试用 API Key、真实 Cookies 提交到远端代码库。
+2. **版权与视觉安全红线**：
+   - 严禁在客户端内置任何受限动漫人物（如初音未来、原神角色等）的立绘 PNG/JPG 图片，避免触发 GitHub DMCA 下架；
+   - 所有主题视觉必须严格沿用 `ui/backdrop.py` 中的 `QPainter` 矢量程序化渐变管线与 `core/sound_effects.py` 正弦波 PCM 音效合成。
+3. **SQLite 数据库迁移红线**：
+   - 数据库已更新至 Schema v4（包含 `ai_storyboard_json`, `ai_clean_script_json`, `custom_script` 等列）；
+   - 执行 `update_task` 等更新操作时，**必须经由 PRAGMA table_info 动态列白名单过滤**，严禁直接拼装未知 SQL 字段导致 `OperationalError: no such column` 崩溃。
+4. **AI 分镜六轨提取铁律**：
+   - 无论链接是否携带普通 CC 字幕，一律通过 `extract_transcript_for_task` 六轨管线降级解析；
+   - 对 B站视频优先捕获 `ai-zh` 官方自动字幕，无字幕时逆向推演元数据，确保分镜拆解流程 100% 不中断。
+5. **快速继承测试验证**：
+   - 接管项目后的第一件事，在工程根目录运行：
+     ```powershell
+     python -m pytest tests/ -v
+     ```
+   - 确保当前 57 项自动化测试全绿通过后再进行业务扩展。
+
+---
+**致接手者**：本软件架构清晰，所有核心数据状态与持久化配置均由 SQLite 自动管理，代码符合严格的 PEP 8 与类型标注，具备极高的扩展性与可维护性。祝开发顺利！
