@@ -44,6 +44,12 @@ RELEASE_BODY = """## 🚀 VideoDownloader v3.0.0-Ultimate 正式版发布
 | `VideoDownloader-Setup-3.0.0-x64.exe` | 独立安装包 | 推荐新手，一键向导安装并生成桌面图标 |
 | `VideoDownloader-3.0.0-Windows-portable.zip` | 绿色便携包 | 免安装解压即用，直接运行 `run_desktop.exe` |
 | `SHA256SUMS.txt` | 安全指纹 | SHA-256 完整性校验文件 |
+
+### 👥 核心致谢与贡献者 (Credits & Contributors)
+- **@huzhenchen66-cloud** - 项目发起与核心维护 (Creator & Lead Maintainer)
+- **@jiangqingheng0819** - 核心贡献者 (Core Contributor)
+- **Antigravity** (Google DeepMind) - 智能结对编程与系统工程落地
+- **DeepSeek** - 大模型推理架构设计与二次元视觉/音频感官建议
 """
 
 
