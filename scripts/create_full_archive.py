@@ -43,8 +43,9 @@ def create_archive() -> None:
     print(f"[Archive] Root directory: {ROOT}")
     t0 = time.time()
 
-    # Destination paths (Prioritize D: drive to survive Shadow Defender on C: drive!)
+    # Destination paths (Prioritize D:\视频下载器 as requested by user)
     destinations = [
+        Path(r"D:\视频下载器\VideoDownloader_Complete_Project_Backup.zip"),
         Path(r"D:\google\VideoDownloader_Complete_Project_Backup.zip"),
         Path(r"D:\VideoDownloader_Complete_Project_Backup.zip"),
         ROOT / "VideoDownloader_Complete_Project_Backup.zip",
