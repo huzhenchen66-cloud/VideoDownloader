@@ -1,0 +1,59 @@
+name: Bug 报告 (Bug Report)
+description: 提交软件运行异常、崩溃或下载报错
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        感谢反馈问题！在提交前，请先确保使用的已经是最新版本，并阅读了 [常见错误码说明](docs/errors.md)。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 发生了什么？
+      description: 请详细描述复现步骤与实际现象
+      placeholder: 1. 复制链接...\n2. 弹出 Quick Capture 浮层...\n3. 出现错误...
+    validations:
+      required: true
+
+  - type: input
+    id: video-url
+    attributes:
+      label: 问题视频链接 (可选脱敏)
+      description: 触发异常的视频 URL 或平台
+      placeholder: https://www.bilibili.com/video/...
+
+  - type: textarea
+    id: explain-output
+    attributes:
+      label: 解析轨迹输出 (--explain)
+      description: 如果是下载或解析失败，请在终端运行 `VideoDownloader.exe --explain "<URL>"` 并粘贴输出
+      render: text
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统与运行环境
+      options:
+        - Windows 11 64-bit (Setup 安装包)
+        - Windows 10 64-bit (Setup 安装包)
+        - Windows 便携免安装版 (.zip)
+        - macOS (DMG / 源码)
+        - Linux (源码 / Web 模式)
+    validations:
+      required: true
+
+  - type: input
+    id: app-version
+    attributes:
+      label: 软件版本号
+      placeholder: "v3.0.0"
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 脱敏诊断日志包 (强烈推荐)
+      description: 请在主界面点击「设置」->「导出脱敏诊断包 (.zip)」并拖拽上传到这里（敏感 Token 与 Cookie 已被自动脱敏）

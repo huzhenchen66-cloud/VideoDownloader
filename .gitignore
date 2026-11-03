@@ -1,0 +1,50 @@
+# Python bytecode & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# PyInstaller build artifacts (publish .exe in GitHub Releases, NEVER commit binaries)
+build/
+dist/
+*.spec
+
+# User runtime data, downloads & private cookies (PRIVACY CRITICAL)
+downloads/
+data/
+bin/
+logs/
+config/
+cookies*.txt
+*cookie*.json
+history.json
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+diagnostics-*.zip
+VideoDownloader_Complete_Project_Backup*.zip
+*.zip
+portable.flag
+.env
+
+# Media temporary files
+*.mp4
+*.mkv
+*.webm
+*.mp3
+*.m4a
+*.part
+*.ytdl
+*.download
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

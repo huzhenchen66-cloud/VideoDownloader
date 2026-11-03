@@ -1,0 +1,16 @@
+{
+  "id": "g3K6EL8O8HE",
+  "title": "4K HDR Nature Landscape Sample",
+  "webpage_url": "https://www.youtube.com/watch?v=g3K6EL8O8HE",
+  "uploader": "DemoChannel",
+  "duration": 185.0,
+  "thumbnail": "https://i.ytimg.com/vi/g3K6EL8O8HE/maxresdefault.jpg",
+  "subtitles": {
+    "zh-Hans": [{"ext": "vtt"}]
+  },
+  "formats": [
+    {"format_id": "136", "width": 1280, "height": 720, "ext": "mp4", "vcodec": "avc1.64001f", "acodec": "none", "filesize": 15728640},
+    {"format_id": "137", "width": 1920, "height": 1080, "ext": "mp4", "vcodec": "avc1.640028", "acodec": "none", "filesize": 38797312},
+    {"format_id": "313", "width": 3840, "height": 2160, "ext": "webm", "vcodec": "vp9", "acodec": "none", "filesize": 125829120}
+  ]
+}

@@ -1,0 +1,9 @@
+services:
+  videodownloader:
+    build: .
+    container_name: videodownloader-ai
+    restart: unless-stopped
+    ports:
+      - "8765:8765"
+    volumes:
+      - ./storage:/app/storage

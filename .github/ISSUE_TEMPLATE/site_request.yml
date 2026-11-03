@@ -1,0 +1,33 @@
+name: 平台支持请求 (Site Support Request)
+description: 建议支持新的视频站点或修复某站点的画质限制
+title: "[Site]: "
+labels: ["enhancement", "site-request"]
+body:
+  - type: input
+    id: site-name
+    attributes:
+      label: 目标视频平台名称
+      placeholder: 例如：西瓜视频 / 某某课件网
+    validations:
+      required: true
+
+  - type: input
+    id: example-url
+    attributes:
+      label: 示例视频链接
+      placeholder: https://example.com/video/12345
+    validations:
+      required: true
+
+  - type: textarea
+    id: explain-output
+    attributes:
+      label: 当前运行 --explain 的输出
+      description: 请先在终端运行 `VideoDownloader.exe --explain "<链接>"` 并粘贴目前的四级降级轨迹
+      render: text
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: 补充说明
+      description: 该平台是否需要登录？是否有特殊的音视频封装？

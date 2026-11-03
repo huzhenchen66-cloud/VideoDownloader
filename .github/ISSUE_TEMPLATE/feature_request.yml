@@ -1,0 +1,26 @@
+name: 新功能建议 (Feature Request)
+description: 为 VideoDownloader 提出新功能或交互改进建议
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你的需求或痛点是什么？
+      description: 描述现阶段遇到什么不便，为什么需要这个功能
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: 你期望的解决方案
+      description: 详细描述你设想的功能逻辑或界面呈现
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 你考虑过的替代方案
+      description: 是否有其他替代方案或参考的开源软件

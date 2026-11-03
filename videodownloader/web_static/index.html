@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>VideoDownloader AI Workspace</title>
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="VideoDL AI" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg" />
+  <link rel="apple-touch-icon" href="/static/icon.svg" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <!-- Sticky Top Navigation -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <img src="/static/icon.svg" alt="logo" />
+        <span>VideoDownloader</span>
+        <span class="badge-ai">AI + MCP</span>
+      </div>
+
+      <nav class="desktop-nav">
+        <button class="nav-btn active" data-view="fetch">🚀 智能下载 <span id="badgeActiveCount" class="nav-count" style="display:none">0</span></button>
+        <button class="nav-btn" data-view="library">📚 战利品 & AI精读 <span id="badgeDoneCount" class="nav-count" style="display:none">0</span></button>
+        <button class="nav-btn" data-view="wall">🧱 多屏播放墙</button>
+        <button class="nav-btn" data-view="settings">⚙️ 手机互联 & 设置</button>
+      </nav>
+
+      <div class="top-actions">
+        <span id="wsIndicator" class="ws-dot" title="实时状态流连接中"></span>
+        <button class="btn btn-sm" id="btnOpenQrModal" title="iPhone 扫码直连">📱 手机连接</button>
+        <button class="btn btn-sm" id="btnToggleTheme" title="切换暗黑/明亮主题">🌗</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ==================== VIEW 1: FETCH & QUEUE ==================== -->
+    <section id="view-fetch" class="view-panel active">
+      <div class="card hero-card">
+        <div class="card-title">
+          <span>✨ 粘贴视频链接或手机分享口令（支持 B站 / YouTube 4K / 抖音无水印 / 小红书 / 批量多行）</span>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-sm" id="btnPasteClipboard">📋 粘贴</button>
+            <button class="btn btn-sm" id="btnClearInput">清空</button>
+          </div>
+        </div>
+
+        <textarea
+          id="urlInput"
+          class="url-textarea"
+          placeholder="直接粘贴网址，或直接粘贴 iPhone 抖音/B站/小红书带中文的分享口令，例如：&#10;7.56 复制打开抖音，看看【精彩作品】https://v.douyin.com/xxxx/ &#10;支持一次粘贴多行批量下载..."
+        ></textarea>
+
+        <div class="options-bar">
+          <div class="opt-group">
+            <select id="optQuality" class="select-input" title="画质策略">
+              <option value="best_1080p">🎬 推荐 1080P MP4 (电脑+iPhone全兼容)</option>
+              <option value="best_4k">💎 原版最高画质 4K / 8K (自动合流)</option>
+              <option value="fast_720p">⚡ 极速 720P MP4</option>
+              <option value="save_480p">🍃 省流 480P MP4</option>
+              <option value="best_mkv">🎞️ 专业无损最高画质 MKV</option>
+            </select>
+
+            <label class="chip-toggle">
+              <input type="checkbox" id="optOnlyAudio" />
+              <span>🎵 仅提取音频</span>
+            </label>
+
+            <select id="optAudioFormat" class="select-input" style="display:none;">
+              <option value="mp3">MP3 高兼容</option>
+              <option value="m4a">M4A 原生音轨</option>
+            </select>
+
+            <label class="chip-toggle" title="自动抓取中英字幕，供 AI 一键生成时间轴笔记">
+              <input type="checkbox" id="optSubtitle" checked />
+              <span>💬 自动字幕 (供AI精读)</span>
+            </label>
+          </div>
+
+          <div class="opt-group">
+            <button class="btn" id="btnProbeUrl">🔍 解析预览</button>
+            <button class="btn btn-primary" id="btnStartDownload">⚡ 立即下载</button>
+          </div>
+        </div>
+
+        <!-- Live Parsed Metadata Preview -->
+        <div id="parsePreviewBox" class="preview-box" style="display:none;">
+          <img id="prevThumb" class="preview-thumb" src="" alt="cover" />
+          <div>
+            <div id="prevTitle" style="font-weight:700; font-size:1.02rem;"></div>
+            <div class="meta-pills" id="prevPills"></div>
+            <div id="prevFormats" style="font-size:0.82rem; color:var(--text-secondary);"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Queue -->
+      <div class="card">
+        <div class="card-title">
+          <span>📊 实时下载调度队列</span>
+          <span id="queueSummaryText" style="font-size:0.82rem; color:var(--text-secondary); font-weight:500;">就绪</span>
+        </div>
+        <div id="activeTaskList" class="task-list">
+          <div class="empty-state">暂无正在进行的下载任务，粘贴链接即可高速拉取 ⚡</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 2: TROPHY LIBRARY & AI COPILOT ==================== -->
+    <section id="view-library" class="view-panel">
+      <div class="card">
+        <div class="card-title" style="flex-wrap:wrap;">
+          <span>🎬 战利品媒体库（支持 iPhone 流式保存 & AI 时间轴精读问答）</span>
+          <div style="display:flex; flex-wrap:wrap; gap:8px;">
+            <input type="text" id="librarySearch" class="text-input" placeholder="搜索已下载标题..." style="width:190px; padding:6px 10px;" />
+            <button class="btn btn-sm" id="btnScanFolder">🔄 扫描导入目录</button>
+            <button class="btn btn-sm" id="btnOpenHostFolder">📂 打开电脑目录</button>
+          </div>
+        </div>
+        <div id="libraryGrid" class="media-grid"></div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 3: MULTI-SCREEN WEB VIDEO WALL ==================== -->
+    <section id="view-wall" class="view-panel">
+      <div class="card">
+        <div class="wall-toolbar">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <strong style="font-size:1.02rem;">🧱 跨端多屏对比播放墙</strong>
+            <select id="wallAddSelect" class="select-input" style="max-width:260px;">
+              <option value="">+ 选择已下载视频加入播放墙...</option>
+            </select>
+            <button class="btn btn-sm btn-primary" id="btnWallLoadRecent">⚡ 一键铺满最近 4 部</button>
+          </div>
+
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <select id="wallColsSelect" class="select-input">
+              <option value="auto">智能网格排列</option>
+              <option value="1">1 列单屏</option>
+              <option value="2">2x2 双列四分屏</option>
+              <option value="3">3x3 三列九宫格</option>
+            </select>
+            <button class="btn btn-sm" id="btnWallPlayAll">⏯️ 全部播放/暂停</button>
+            <button class="btn btn-sm" id="btnWallLoopAll">🔁 循环: 开</button>
+            <button class="btn btn-sm" id="btnWallFullscreen">⛶ 全屏墙</button>
+            <button class="btn btn-sm btn-danger" id="btnWallClear">清空</button>
+          </div>
+        </div>
+
+        <div id="wallStage" class="wall-stage">
+          <div class="empty-state" style="grid-column:1/-1; align-self:center;">
+            从上方下拉框添加视频，或点击【⚡ 一键铺满最近 4 部】开启多路同屏监控对比播放（支持主声道独奏、滚轮局部放大与全屏）
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== VIEW 4: IPHONE PAIRING & AI / ENGINE SETTINGS ==================== -->
+    <section id="view-settings" class="view-panel">
+      <div class="settings-grid">
+        <!-- Card A: iPhone & LAN Pairing -->
+        <div class="card">
+          <div class="card-title">📱 iPhone / 手机无线互联 & 快捷指令</div>
+          <div class="qr-card-box">
+            <img id="settingsQrImg" src="" alt="LAN QR Code" />
+            <div style="font-weight:700; font-size:0.96rem;" id="settingsLanUrl">http://127.0.0.1:8765</div>
+            <select id="settingsLanSelect" class="select-input" style="max-width:260px;"></select>
+            <div style="font-size:0.81rem; color:var(--text-secondary); line-height:1.55;">
+              1. 确保 <strong>iPhone 与电脑连接同一 Wi-Fi</strong>，用苹果原相机扫码即开。<br/>
+              2. 在 iPhone Safari 点击底部 <strong>分享 → 添加到主屏幕</strong>，即可变身全屏独立 App。<br/>
+              3. 在战利品库点击 <strong>📲 存到手机</strong> 可直接存入 iPhone「文件 / 相册」。
+            </div>
+            <div style="width:100%; text-align:left; margin-top:6px; padding:10px; background:var(--bg-input); border-radius:8px; font-size:0.79rem;">
+              <strong>⚡ iOS「快捷指令」一键静默投递接口：</strong><br/>
+              <code id="shortcutApiDisplay" style="word-break:break-all; color:var(--accent);"></code>
+              <div style="color:var(--text-secondary); margin-top:4px;">快捷指令添加「获取URL内容」→ 方法选 POST → JSON 填 <code>{"text": "共享输入"}</code> 即可在抖音/B站分享菜单一键投递到电脑！</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Card B: AI Copilot LLM & ASR Config -->
+        <div class="card">
+          <div class="card-title">🤖 AI 视频精读工作台配置 (AI 应用核心)</div>
+          <div class="form-row">
+            <label>大模型服务商预设 (兼容所有 OpenAI 接口格式)</label>
+            <select id="cfgLlmProvider" class="select-input">
+              <option value="deepseek">DeepSeek (推荐高性价比 deepseek-chat)</option>
+              <option value="qwen">阿里云百炼 / 通义千问 (qwen-plus)</option>
+              <option value="siliconflow">硅基流动 SiliconFlow (含免费 Qwen2.5-7B)</option>
+              <option value="ollama">本地 Ollama (免 API Key 本地推理)</option>
+              <option value="openai">OpenAI / 自定义兼容接口</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>API Base URL</label>
+            <input type="text" id="cfgLlmBaseUrl" class="text-input" placeholder="https://api.deepseek.com/v1" />
+          </div>
+          <div class="form-row">
+            <label>LLM API Key (留空时自动启用内置离线规则提炼体验模式)</label>
+            <input type="password" id="cfgLlmApiKey" class="text-input" placeholder="sk-..." />
+          </div>
+          <div class="form-row">
+            <label>模型名称 (Model ID)</label>
+            <input type="text" id="cfgLlmModel" class="text-input" placeholder="deepseek-chat" />
+          </div>
+          <hr style="border:none; border-top:1px solid var(--border); margin:14px 0;" />
+          <div class="form-row">
+            <label>可选：无字幕短视频语音转写 ASR Key (如硅基流动免费 SenseVoice / Whisper)</label>
+            <input type="password" id="cfgAsrApiKey" class="text-input" placeholder="选填：填入后对无原生字幕的视频自动提取音轨转写" />
+          </div>
+          <div class="form-row" style="display:grid; grid-template-columns:1.3fr 1fr; gap:8px;">
+            <input type="text" id="cfgAsrBaseUrl" class="text-input" placeholder="https://api.siliconflow.cn/v1" />
+            <input type="text" id="cfgAsrModel" class="text-input" placeholder="FunAudioLLM/SenseVoiceSmall" />
+          </div>
+          <button class="btn btn-primary" id="btnSaveAiSettings" style="width:100%;">💾 保存 AI 工作台配置</button>
+        </div>
+
+        <!-- Card C: Download Engine, Cookies & MCP Config -->
+        <div class="card">
+          <div class="card-title">🧩 多引擎防风控、Cookie 与 MCP Agent</div>
+          <div class="form-row">
+            <label>电脑端默认保存路径</label>
+            <input type="text" id="cfgSavePath" class="text-input" />
+          </div>
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+            <div>
+              <label>同时下载任务数 (1-6)</label>
+              <input type="number" id="cfgConcurrent" class="text-input" min="1" max="6" value="3" />
+            </div>
+            <div>
+              <label>单视频并发分片线程</label>
+              <select id="cfgFragments" class="select-input">
+                <option value="4">保守 4 线程</option>
+                <option value="8">稳定 8 线程</option>
+                <option value="16">极速 16 线程</option>
+                <option value="32">极限 32 线程</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <label>浏览器 Cookie 借用 (解锁 B站大会员 4K / 登录受限视频)</label>
+            <select id="cfgBrowserCookie" class="select-input">
+              <option value="none">不使用本地浏览器 Cookies</option>
+              <option value="edge">Microsoft Edge</option>
+              <option value="chrome">Google Chrome</option>
+              <option value="firefox">Firefox</option>
+              <option value="brave">Brave</option>
+              <option value="safari">Safari (macOS)</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>或上传独立 cookies.txt 文件 <span id="cookieFileStatus" style="color:var(--success);"></span></label>
+            <input type="file" id="cookieFileInput" accept=".txt" class="text-input" />
+          </div>
+          <button class="btn btn-primary" id="btnSaveEngineSettings" style="width:100%; margin-bottom:14px;">💾 保存下载引擎设置</button>
+
+          <div style="padding:12px; border-radius:10px; background:var(--bg-elevated); font-size:0.82rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <strong>🔧 核心组件状态</strong>
+              <button class="btn btn-sm" id="btnUpdateYtdlp">🔄 热更新 yt-dlp</button>
+            </div>
+            <div id="toolchainStatusBox" style="color:var(--text-secondary); line-height:1.6;">检测中...</div>
+          </div>
+
+          <div style="margin-top:12px; padding:12px; border-radius:10px; background:var(--bg-input); font-size:0.79rem;">
+            <strong>🔌 Cursor / Claude Desktop 标准 MCP 接入配置：</strong>
+            <pre style="margin-top:6px; overflow-x:auto; color:var(--accent);">{
+  "mcpServers": {
+    "videodownloader": {
+      "command": "videodownloader",
+      "args": ["--mcp"]
+    }
+  }
+}</pre>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Mobile Bottom Navigation Bar -->
+  <nav class="mobile-tabbar">
+    <button class="mob-tab active" data-view="fetch"><span class="ico">🚀</span><span>下载</span></button>
+    <button class="mob-tab" data-view="library"><span class="ico">📚</span><span>媒体&AI</span></button>
+    <button class="mob-tab" data-view="wall"><span class="ico">🧱</span><span>播放墙</span></button>
+    <button class="mob-tab" data-view="settings"><span class="ico">⚙️</span><span>设置</span></button>
+  </nav>
+
+  <!-- ==================== MODAL 1: AI VIDEO COPILOT & PLAYER STUDIO ==================== -->
+  <div id="studioModal" class="modal-backdrop">
+    <div class="studio-modal">
+      <div class="studio-header">
+        <div id="studioTitle" style="font-weight:700; font-size:0.98rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">视频播放与 AI 精读</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <a id="studioDownloadPhoneBtn" class="btn btn-sm btn-success" href="#" download>📲 存到本机/手机</a>
+          <button class="btn btn-sm" id="btnCloseStudio">✕ 关闭</button>
+        </div>
+      </div>
+
+      <div class="studio-grid">
+        <div class="studio-player-pane">
+          <video id="studioVideo" controls playsinline preload="metadata"></video>
+          <div style="display:flex; justify-content:space-between; align-items:center; color:#94a3b8; font-size:0.81rem; flex-wrap:wrap; gap:8px;">
+            <span id="studioMetaInfo">支持拖动进度条与点击右侧 AI 时间戳秒级跳转</span>
+            <div style="display:flex; gap:6px;">
+              <button class="btn btn-sm" data-rate="1">1.0x</button>
+              <button class="btn btn-sm" data-rate="1.25">1.25x</button>
+              <button class="btn btn-sm" data-rate="1.5">1.5x</button>
+              <button class="btn btn-sm" data-rate="2">2.0x</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="studio-ai-pane">
+          <div class="ai-tabs">
+            <button class="nav-btn active" data-aitab="summary">✨ AI 时间轴总结</button>
+            <button class="nav-btn" data-aitab="chat">💬 视频问答</button>
+            <button class="nav-btn" data-aitab="transcript">📝 原文字幕</button>
+          </div>
+
+          <!-- AI Tab 1: Summary -->
+          <div id="aitab-summary" class="ai-tab-content">
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+              <button class="btn btn-primary btn-sm" id="btnRunAiSummary">✨ 一键生成 AI 时间轴精读笔记</button>
+              <button class="btn btn-sm" id="btnRefreshAiSummary" title="强制重新生成">🔄 重新提炼</button>
+            </div>
+            <div id="aiSummaryBody" class="empty-state">
+              点击上方按钮，自动提取视频字幕并生成核心摘要与可点击跳转的章节时间轴 🎯
+            </div>
+          </div>
+
+          <!-- AI Tab 2: Video Q&A -->
+          <div id="aitab-chat" class="ai-tab-content" style="display:none; flex-direction:column; justify-content:space-between;">
+            <div id="aiChatMessages" class="chat-box" style="margin-bottom:12px;">
+              <div class="chat-bubble assistant">你好！我可以基于这部视频的时间轴字幕回答任何细节问题，并给你标注原片时间点 `[MM:SS]`。试着问我：“这个视频的核心结论是什么？”</div>
+            </div>
+            <div style="display:flex; gap:6px; position:sticky; bottom:0; background:var(--bg-surface); padding-top:6px;">
+              <input type="text" id="aiChatInput" class="text-input" style="flex:1;" placeholder="针对视频内容提问 (回车发送)..." />
+              <button class="btn btn-primary btn-sm" id="btnSendAiChat">发送</button>
+            </div>
+          </div>
+
+          <!-- AI Tab 3: Raw Transcript -->
+          <div id="aitab-transcript" class="ai-tab-content" style="display:none;">
+            <div style="display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+              <button class="btn btn-sm" id="btnExtractSubOnly">📥 提取内置字幕</button>
+              <label class="btn btn-sm" style="cursor:pointer;">
+                📂 导入 .srt/.vtt 字幕
+                <input type="file" id="uploadSubInput" accept=".srt,.vtt,.json" style="display:none;" />
+              </label>
+            </div>
+            <div id="aiTranscriptBody" class="empty-state">尚未加载字幕片段</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: QUICK QR PAIRING ==================== -->
+  <div id="qrModal" class="modal-backdrop">
+    <div class="card" style="width:min(400px, 94vw); margin:0;">
+      <div class="card-title">
+        <span>📱 iPhone 相机扫码秒连</span>
+        <button class="btn btn-sm" id="btnCloseQrModal">✕</button>
+      </div>
+      <div class="qr-card-box">
+        <img id="modalQrImg" src="" alt="QR" />
+        <div id="modalLanUrl" style="font-weight:700; color:var(--accent);"></div>
+        <p style="font-size:0.82rem; color:var(--text-secondary);">
+          同一 Wi-Fi 下使用 iPhone 相机或微信扫一扫即可无线遥控下载、在线点播电脑媒体库或将无水印视频直接保存到手机！
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <div id="toastStack" class="toast-stack"></div>
+  <script src="/static/app.js"></script>
+</body>
+</html>

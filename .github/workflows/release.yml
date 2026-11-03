@@ -1,0 +1,110 @@
+name: Build & Publish Cross-Platform Releases
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    name: Build Windows Setup.exe & Portable ZIP
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run Offline Test Suite
+        run: pytest -v
+      - name: Build onedir + Inno Setup Installer
+        run: python scripts/build_win_exe.py
+      - name: Upload Windows Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: |
+            dist/VideoDownloader-Setup-*-x64.exe
+            dist/VideoDownloader-*-Windows-portable.zip
+
+  build-macos:
+    name: Build macOS Apple Silicon DMG
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run Offline Test Suite
+        run: pytest -v
+      - name: Build & Ad-hoc Codesign macOS DMG
+        run: bash scripts/build_mac_dmg.sh
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-release
+          path: dist/VideoDownloader-*-macOS-arm64.dmg
+
+  build-linux:
+    name: Build Linux x64 Archive
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+      - name: Install Linux Qt6 Headless Runtime Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libgl1 libegl1 libxkbcommon0 libdbus-1-3
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run Offline Test Suite
+        run: pytest -v
+      - name: Build Linux onedir Tarball
+        run: python scripts/build_win_exe.py
+      - name: Upload Linux Tarball
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release
+          path: dist/VideoDownloader-*-Linux-x64.tar.gz
+
+  publish-github-release:
+    name: Generate SHA256SUMS & Publish GitHub Release
+    needs: [build-windows, build-macos, build-linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Platform Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release_assets
+          merge-multiple: true
+
+      - name: Compute Unified SHA256SUMS.txt
+        run: |
+          cd release_assets
+          sha256sum VideoDownloader* > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Publish Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release_assets/*
+          generate_release_notes: true

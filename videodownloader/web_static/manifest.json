@@ -1,0 +1,17 @@
+{
+  "name": "VideoDownloader AI Workspace",
+  "short_name": "VideoDL AI",
+  "description": "跨端多引擎视频下载、分屏播放墙与 AI 视频精读工作台",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1120",
+  "theme_color": "#6366f1",
+  "icons": [
+    {
+      "src": "/static/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
