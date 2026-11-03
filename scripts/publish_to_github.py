@@ -74,10 +74,13 @@ class GitHubPublisher:
 
         user_data = resp.json()
         self.user_login = user_data.get("login", "")
-        self.user_name = user_data.get("name") or self.user_login
-        self.user_email = user_data.get("email") or f"{self.user_login}@users.noreply.github.com"
+        user_id = user_data.get("id", "")
+        # 强制使用 GitHub 官方隐私混淆邮箱与网名，严密保护真实邮箱与真实姓名
+        self.user_name = self.user_login
+        self.user_email = f"{user_id}+{self.user_login}@users.noreply.github.com"
         scopes = resp.headers.get("x-oauth-scopes", "未知")
-        print(f"      ✓ 认证成功！当前 GitHub 登录身份: {self.user_login} ({self.user_name})")
+        print(f"      ✓ 认证成功！当前 GitHub 登录身份: {self.user_login}")
+        print(f"      🛡️ 隐私保护已激活：所有提交将统一使用 GitHub 官方混淆邮箱 ({self.user_email})")
         print(f"      ✓ 令牌具备的作用域权限: {scopes}")
 
     def ensure_repository(self) -> None:
